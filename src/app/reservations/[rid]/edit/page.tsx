@@ -43,16 +43,8 @@ export default function EditReservationPage() {
     }, [session, rid]);
 
     const handleUpdate = async () => {
-        const isMember = session?.user?.role === 'member';
-        
-        // Frontend check: For members, ticket count must be between 1 and 5
-        // For admins: ticket count must be at least 1 (no upper limit)
-        if (ticketCount < 1) {
-            setError("Ticket count must be at least 1");
-            return;
-        }
-        
-        if (isMember && ticketCount > 5) {
+        // Frontend check: ticket count must be between 1 and 5 for all roles
+        if (ticketCount < 1 || ticketCount > 5) {
             setError("Ticket count must be between 1 and 5");
             return;
         }
@@ -105,13 +97,13 @@ export default function EditReservationPage() {
                 
                 <TextField 
                     variant="standard" 
-                    label={session?.user?.role === 'admin' ? "Ticket Count" : "Ticket Count (Max 5)"}
+                    label="Ticket Count (Max 5)"
                     type="number"
                     value={ticketCount}
                     onChange={(e) => setTicketCount(parseInt(e.target.value) || 1)}
                     inputProps={{ 
                         min: 1, 
-                        ...(session?.user?.role === 'member' ? { max: 5 } : {})
+                        max: 5
                     }}
                     fullWidth
                 />
