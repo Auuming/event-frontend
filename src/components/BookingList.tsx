@@ -6,8 +6,11 @@ import { useSession } from "next-auth/react"
 import { useEffect, useState } from "react"
 import getReservations from "@/libs/getReservations"
 import deleteReservation from "@/libs/deleteReservation"
+import getUserProfile from "@/libs/getUserProfile"
+import getEvent from "@/libs/getEvent"
 import Link from "next/link"
-import { TextField, Select, MenuItem, FormControl, InputLabel } from "@mui/material"
+import { TextField, Select, MenuItem, FormControl, InputLabel, Button } from "@mui/material"
+import jsPDF from 'jspdf'
 
 export default function ReservationList() {
     const { data: session } = useSession()
@@ -48,6 +51,137 @@ export default function ReservationList() {
             alert('Failed to delete reservation')
         }
     }
+
+    const handleExportToPDF = async (reservation: ReservationItem) => {
+        // Extract reservation data
+        const eventName = reservation.eventName || 
+            (typeof reservation.event === 'string' ? reservation.event : 
+            (reservation.event as any)?.name || 'Unknown Event');
+        
+        const eventDateObj = typeof reservation.event === 'object' && reservation.event?.eventDate
+            ? new Date(reservation.event.eventDate)
+            : null;
+        const eventDate = eventDateObj ? eventDateObj.toLocaleDateString() : 'N/A';
+        const eventStatus = getEventStatus(eventDateObj);
+        
+        // Get user data - from reservation for admin, or from GET /auth/me for members
+        let userName = typeof reservation.user === 'object' && reservation.user?.name
+            ? reservation.user.name
+            : (typeof reservation.user === 'string' ? reservation.user : 'N/A');
+        
+        let userEmail = typeof reservation.user === 'object' && reservation.user?.email
+            ? reservation.user.email
+            : 'N/A';
+        
+        let userTel = typeof reservation.user === 'object' && reservation.user?.tel
+            ? reservation.user.tel
+            : 'N/A';
+        
+        // For members, fetch user data from GET /auth/me if not available in reservation
+        if (session?.user?.role === 'member' && (!userName || userName === 'N/A' || !userEmail || userEmail === 'N/A' || !userTel || userTel === 'N/A')) {
+            try {
+                if (session.user.token) {
+                    const userData = await getUserProfile(session.user.token as string);
+                    if (userData.data) {
+                        userName = userData.data.name || userName;
+                        userEmail = userData.data.email || userEmail;
+                        userTel = userData.data.tel || userTel;
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to fetch user profile:', err);
+            }
+        }
+        
+        let venue = typeof reservation.event === 'object' && reservation.event?.venue
+            ? reservation.event.venue
+            : 'N/A';
+        
+        let organizer = typeof reservation.event === 'object' && reservation.event?.organizer
+            ? reservation.event.organizer
+            : 'N/A';
+        
+        // If organizer or venue is missing, fetch full event details
+        const eventId = typeof reservation.event === 'object' && reservation.event?._id
+            ? reservation.event._id
+            : (typeof reservation.event === 'string' ? reservation.event : null);
+        
+        if (eventId && (!organizer || organizer === 'N/A' || !venue || venue === 'N/A')) {
+            try {
+                const eventData = await getEvent(eventId);
+                if (eventData.data) {
+                    if (!organizer || organizer === 'N/A') {
+                        organizer = eventData.data.organizer || 'N/A';
+                    }
+                    if (!venue || venue === 'N/A') {
+                        venue = eventData.data.venue || 'N/A';
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to fetch event details:', err);
+            }
+        }
+
+        // Create PDF
+        const doc = new jsPDF();
+        
+        // Title
+        doc.setFontSize(18);
+        doc.text('Reservation Details', 20, 20);
+        
+        // Line separator
+        doc.setLineWidth(0.5);
+        doc.line(20, 25, 190, 25);
+        
+        // Reservation details
+        let yPos = 35;
+        doc.setFontSize(12);
+        
+        const addPDFLine = (label: string, value: string) => {
+            doc.setFont('helvetica', 'bold');
+            doc.text(label, 20, yPos);
+            doc.setFont('helvetica', 'normal');
+            doc.text(value || 'N/A', 80, yPos);
+            yPos += 10;
+        };
+        
+        // Top section: Reservation ID and Ticket Amount
+        addPDFLine('Reservation ID:', reservation._id || 'N/A');
+        addPDFLine('Ticket Amount:', reservation.ticketAmount.toString());
+        
+        // Event Details section
+        yPos += 5;
+        doc.setFont('helvetica', 'bold');
+        doc.text('Event Details:', 20, yPos);
+        yPos += 10;
+        addPDFLine('Event Name:', eventName);
+        addPDFLine('Event Date:', eventDate);
+        addPDFLine('Status:', eventStatus ? eventStatus.charAt(0).toUpperCase() + eventStatus.slice(1) : 'N/A');
+        addPDFLine('Venue:', venue);
+        addPDFLine('Organizer:', organizer);
+        
+        // User Details section
+        yPos += 5;
+        doc.setFont('helvetica', 'bold');
+        doc.text('User Details:', 20, yPos);
+        yPos += 10;
+        addPDFLine('User Name:', userName);
+        addPDFLine('User Email:', userEmail);
+        addPDFLine('User Tel:', userTel);
+        
+        // Footer
+        yPos += 10;
+        doc.setLineWidth(0.5);
+        doc.line(20, yPos, 190, yPos);
+        yPos += 10;
+        doc.setFontSize(10);
+        doc.setTextColor(128, 128, 128);
+        doc.text(`Generated on: ${new Date().toLocaleString()}`, 20, yPos);
+        
+        // Save PDF
+        const fileName = `Reservation_${reservation._id || 'unknown'}_${new Date().toISOString().split('T')[0]}.pdf`;
+        doc.save(fileName);
+    }
     
     // Calculate status helper function
     const getEventStatus = (date: Date | null): string => {
@@ -70,21 +204,30 @@ export default function ReservationList() {
             return false;
         }
 
-        // Search filter (only for admin)
-        if (session?.user?.role === 'admin' && searchQuery.trim() !== '') {
+        // Search filter
+        if (searchQuery.trim() !== '') {
             const eventName = reservation.eventName || 
                 (typeof reservation.event === 'string' ? reservation.event : 
                 (reservation.event as any)?.name || '');
-            const userName = typeof reservation.user === 'object' && reservation.user?.name
-                ? reservation.user.name
-                : '';
             
-            if (searchType === 'event') {
-                if (!eventName.toLowerCase().includes(searchQuery.toLowerCase())) {
-                    return false;
+            if (session?.user?.role === 'admin') {
+                // Admin can search by event or user name
+                const userName = typeof reservation.user === 'object' && reservation.user?.name
+                    ? reservation.user.name
+                    : '';
+                
+                if (searchType === 'event') {
+                    if (!eventName.toLowerCase().includes(searchQuery.toLowerCase())) {
+                        return false;
+                    }
+                } else if (searchType === 'user') {
+                    if (!userName.toLowerCase().includes(searchQuery.toLowerCase())) {
+                        return false;
+                    }
                 }
-            } else if (searchType === 'user') {
-                if (!userName.toLowerCase().includes(searchQuery.toLowerCase())) {
+            } else {
+                // Member can only search by event name
+                if (!eventName.toLowerCase().includes(searchQuery.toLowerCase())) {
                     return false;
                 }
             }
@@ -119,8 +262,8 @@ export default function ReservationList() {
                     </Select>
                 </FormControl>
 
-                {/* Search (only for admin) */}
-                {session.user?.role === 'admin' && (
+                {/* Search */}
+                {session.user?.role === 'admin' ? (
                     <div className="flex gap-2 flex-1">
                         <FormControl variant="standard" className="min-w-[120px]">
                             <InputLabel className="text-black">Search By</InputLabel>
@@ -145,6 +288,17 @@ export default function ReservationList() {
                             }}
                         />
                     </div>
+                ) : (
+                    <TextField
+                        variant="standard"
+                        placeholder="Search by event name..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="flex-1"
+                        InputProps={{
+                            className: "text-black"
+                        }}
+                    />
                 )}
             </div>
 
@@ -184,6 +338,14 @@ export default function ReservationList() {
                         )}
                         <div className="text-sm">Tickets: {reservation.ticketAmount}</div>
                         <div className="mt-2 flex gap-2">
+                            <Button
+                                variant="contained"
+                                onClick={() => handleExportToPDF(reservation)}
+                                className="bg-purple-600 hover:bg-purple-700"
+                                size="small"
+                            >
+                                Export PDF
+                            </Button>
                             <Link 
                                 href={`/reservations/${reservation._id}/edit`}
                                 className="block rounded-md bg-blue-600 hover:bg-blue-700 px-3 py-2 text-white shadow-sm"

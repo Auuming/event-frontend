@@ -26,6 +26,7 @@ interface EventItem {
       description?: string;
       eventDate: string;
       venue?: string;
+      organizer?: string;
       availableTicket?: number;
     };
     eventName?: string;
