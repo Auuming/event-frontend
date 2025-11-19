@@ -19,15 +19,12 @@ export default async function updateReservation(token: string, rid: string, tick
                 const errorMessage = errorData.message || 'Failed to update reservation';
                 throw new Error(errorMessage);
             } catch (parseError) {
-                // If it's already an Error we threw, re-throw it
                 if (parseError instanceof Error) {
                     throw parseError;
                 }
-                // If parsing fails, throw generic error
                 throw new Error('Failed to update reservation');
             }
         }
-        // For other errors, throw generic error
         throw new Error('Failed to update reservation');
     }
 

@@ -7,7 +7,6 @@ export default async function getEvents() {
             headers: {
                 'Content-Type': 'application/json',
             },
-            // Add cache control for client-side fetches
             cache: 'no-store',
         });
         

@@ -1,6 +1,4 @@
 // Backend API configuration
-// NEXT_PUBLIC_* variables are embedded at build time in Next.js
-// Make sure to set NEXT_PUBLIC_BACKEND_URL in Vercel environment variables before building
 export const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5001';
 export const API_BASE_URL = `${BACKEND_URL}/api/v1`;
 

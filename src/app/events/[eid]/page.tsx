@@ -86,11 +86,3 @@ export default async function EventDetailPage( {params} : { params: Promise<{eid
         </main>
     )
 }
-
-// export async function generateStaticParams() {
-//     return [
-//         {vid: "001"},
-//         {vid: "002"},
-//         {vid: "003"},
-//     ]
-// }

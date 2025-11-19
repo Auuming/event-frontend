@@ -46,7 +46,6 @@ export default function UserPage() {
 
     const validatePhoneNumber = (phone: string): boolean => {
         // Valid phone number: 10 digits, can have dashes, spaces, or parentheses
-        // Examples: 1234567890, 123-456-7890, (123) 456-7890, 123 456 7890
         const phoneRegex = /^[\d\s\-\(\)]{10,}$/;
         const digitsOnly = phone.replace(/\D/g, '');
         return phoneRegex.test(phone) && digitsOnly.length >= 10 && digitsOnly.length <= 15;
@@ -95,7 +94,6 @@ export default function UserPage() {
 
         try {
             await deleteUser(session.user.token as string);
-            // Sign out and redirect to home
             await signOut({ callbackUrl: '/' });
         } catch (err: any) {
             setError(err.message || "Failed to delete account");
@@ -206,7 +204,7 @@ export default function UserPage() {
                 )}
             </div>
 
-            {/* Delete Confirmation Dialog */}
+            
             <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
                 <DialogTitle className="text-black">Delete Account</DialogTitle>
                 <DialogContent>

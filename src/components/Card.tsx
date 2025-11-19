@@ -43,15 +43,15 @@ export default function Card({eventName, imgSrc, description, eventDate, availab
         </div>
         <div className="w-full text-black p-3 flex flex-col gap-1 flex-grow" onClick={(e) => e.stopPropagation()}>
           <div className="font-bold text-lg break-words" title={eventName}>{eventName}</div>
-          {/* Description: show on all screens, wrap properly */}
+          
           {description && (
             <div className="text-sm text-gray-600 break-words" title={description}>{description}</div>
           )}
-          {/* Available Tickets: show on all screens */}
+          
           {availableTicket !== undefined && (
             <div className="text-xs text-gray-500">Available: {availableTicket} tickets</div>
           )}
-          {/* Event Date: show on all screens */}
+          
           {eventDate && (
             <div className="text-xs text-gray-500">Date: {new Date(eventDate).toLocaleDateString()}</div>
           )}

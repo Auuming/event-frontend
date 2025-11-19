@@ -113,7 +113,6 @@ export default function ManageEventsPage() {
                 </Button>
             </Link>
             
-            {/* Filters and Search */}
             <div className="w-full max-w-4xl mb-4 flex flex-col gap-4 md:flex-row">
                 {/* Status Filter */}
                 <FormControl variant="standard" className="min-w-[200px]">

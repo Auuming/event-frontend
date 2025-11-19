@@ -145,7 +145,7 @@ export default function ReservationList() {
             yPos += 10;
         };
         
-        // Top section: Reservation ID and Ticket Amount
+        // Reservation Section
         addPDFLine('Reservation ID:', reservation._id || 'N/A');
         addPDFLine('Ticket Amount:', reservation.ticketAmount.toString());
         
@@ -245,7 +245,6 @@ export default function ReservationList() {
                 {session.user?.role === 'admin' ? 'All Reservations' : 'My Reservations'}
             </h1>
             
-            {/* Filters and Search */}
             <div className="mb-4 flex flex-col gap-4 md:flex-row">
                 {/* Status Filter */}
                 <FormControl variant="standard" className="min-w-[200px]">
