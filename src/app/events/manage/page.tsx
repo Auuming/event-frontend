@@ -87,6 +87,18 @@ export default function ManageEventsPage() {
                         const posterPicture = event.posterPicture 
                             ? (typeof event.posterPicture === 'string' && isValidImageSrc(event.posterPicture) ? event.posterPicture : '/img/cover.jpg')
                             : '/img/cover.jpg';
+                        
+                        // Calculate status based on eventDate
+                        const getEventStatus = (dateString: string): string => {
+                            const eventDate = new Date(dateString);
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            const eventDateOnly = new Date(eventDate);
+                            eventDateOnly.setHours(0, 0, 0, 0);
+                            return eventDateOnly < today ? 'end' : 'upcoming';
+                        };
+                        const eventStatus = getEventStatus(event.eventDate);
+                        
                         return (
                             <div key={event._id || event.id || `event-${event._id}`} className="bg-slate-200 rounded px-5 py-2 my-2 text-black flex flex-row gap-4">
                                 <Image 
@@ -99,6 +111,7 @@ export default function ManageEventsPage() {
                                 <div className="flex-1">
                             <div className="text-xl font-bold">{event.name}</div>
                             <div className="text-sm">Date: {new Date(event.eventDate).toLocaleDateString()}</div>
+                            <div className="text-sm">Status: <span className="font-semibold capitalize">{eventStatus}</span></div>
                             <div className="text-sm">Venue: {event.venue}</div>
                             <div className="text-sm">Organizer: {event.organizer}</div>
                             <div className="text-sm">Available Tickets: {event.availableTicket}</div>

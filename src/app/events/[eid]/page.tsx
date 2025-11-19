@@ -23,6 +23,17 @@ async function EventDetailContent({eid, session}: {eid: string, session: any}) {
         ? (typeof eventDetail.data.posterPicture === 'string' && isValidImageSrc(eventDetail.data.posterPicture) ? eventDetail.data.posterPicture : '/img/cover.jpg')
         : '/img/cover.jpg';
 
+    // Check if event has passed (eventDate is before today)
+    const isEventPassed = (dateString: string): boolean => {
+        const eventDate = new Date(dateString);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const eventDateOnly = new Date(eventDate);
+        eventDateOnly.setHours(0, 0, 0, 0);
+        return eventDateOnly < today;
+    };
+    const eventHasPassed = isEventPassed(eventDetail.data.eventDate);
+
     return (
             <div className="flex flex-row my-5">
             <Image src = { posterPicture }
@@ -37,17 +48,19 @@ async function EventDetailContent({eid, session}: {eid: string, session: any}) {
                 <div className="text-md mx-5 mb-2">Venue: { eventDetail.data.venue }</div>
                 <div className="text-md mx-5 mb-2">Organizer: { eventDetail.data.organizer }</div>
                 <div className="text-md mx-5 mb-2">Available Tickets: { eventDetail.data.availableTicket }</div>
-                <div className="mt-4 flex gap-2">
-                    {session?.user?.role === 'member' ? (
-                        <Link href={`/reservations/create?eventId=${eid}`} className="inline-block bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded cursor-pointer no-underline">
-                            Reserve
+                {!eventHasPassed && (
+                    <div className="mt-4 flex gap-2">
+                        {session?.user?.role === 'member' ? (
+                            <Link href={`/reservations/create?eventId=${eid}`} className="inline-block bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded cursor-pointer no-underline">
+                                Reserve
                             </Link>
-                    ) : !session ? (
-                        <Link href="/api/auth/signin" className="inline-block bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded cursor-pointer no-underline">
-                            Sign In to Reserve
+                        ) : !session ? (
+                            <Link href="/api/auth/signin" className="inline-block bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded cursor-pointer no-underline">
+                                Sign In to Reserve
                             </Link>
-                    ) : null}
-                </div>
+                        ) : null}
+                    </div>
+                )}
             </div>
         </div>
     );
