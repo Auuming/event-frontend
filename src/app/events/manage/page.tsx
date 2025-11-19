@@ -35,7 +35,7 @@ export default function ManageEventsPage() {
 
         try {
             await deleteEvent(session.user.token as string, eid);
-            setEvents(events.filter(e => e.id !== eid));
+            setEvents(events.filter(e => (e.id || e._id) !== eid));
         } catch (err) {
             alert("Failed to delete event");
         }
@@ -72,29 +72,32 @@ export default function ManageEventsPage() {
                 {events.length === 0 ? (
                     <div>No events found</div>
                 ) : (
-                    events.map((event) => (
-                        <div key={event.id} className="bg-slate-200 rounded px-5 py-2 my-2 text-black">
-                            <div className="text-xl font-bold">{event.name}</div>
-                            <div className="text-sm">Date: {new Date(event.eventDate).toLocaleDateString()}</div>
-                            <div className="text-sm">Venue: {event.venue}</div>
-                            <div className="text-sm">Organizer: {event.organizer}</div>
-                            <div className="text-sm">Available Tickets: {event.availableTicket}</div>
-                            <div className="mt-2 flex gap-2">
-                                <Link href={`/events/${event.id}/edit`}>
-                                    <Button variant="contained" className="bg-blue-600 hover:bg-blue-700">
-                                        Edit
+                    events.map((event) => {
+                        const eventId = event.id || event._id;
+                        return (
+                            <div key={event._id || event.id || `event-${event._id}`} className="bg-slate-200 rounded px-5 py-2 my-2 text-black">
+                                <div className="text-xl font-bold">{event.name}</div>
+                                <div className="text-sm">Date: {new Date(event.eventDate).toLocaleDateString()}</div>
+                                <div className="text-sm">Venue: {event.venue}</div>
+                                <div className="text-sm">Organizer: {event.organizer}</div>
+                                <div className="text-sm">Available Tickets: {event.availableTicket}</div>
+                                <div className="mt-2 flex gap-2">
+                                    <Link href={`/events/${eventId}/edit`}>
+                                        <Button variant="contained" className="bg-blue-600 hover:bg-blue-700">
+                                            Edit
+                                        </Button>
+                                    </Link>
+                                    <Button 
+                                        variant="contained" 
+                                        className="bg-red-600 hover:bg-red-700"
+                                        onClick={() => handleDelete(eventId)}
+                                    >
+                                        Delete
                                     </Button>
-                                </Link>
-                                <Button 
-                                    variant="contained" 
-                                    className="bg-red-600 hover:bg-red-700"
-                                    onClick={() => handleDelete(event.id)}
-                                >
-                                    Delete
-                                </Button>
+                                </div>
                             </div>
-                        </div>
-                    ))
+                        );
+                    })
                 )}
             </div>
         </main>
