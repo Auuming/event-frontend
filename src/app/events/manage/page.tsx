@@ -8,6 +8,7 @@ import Image from "next/image";
 import { Button, Alert, TextField, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import getEvents from "@/libs/getEvents";
 import deleteEvent from "@/libs/deleteEvent";
+import { API_BASE_URL } from "@/libs/config";
 
 export default function ManageEventsPage() {
     const { data: session } = useSession();
@@ -23,8 +24,11 @@ export default function ManageEventsPage() {
             try {
                 const data = await getEvents();
                 setEvents(data.data || []);
+                setError(""); // Clear any previous errors
             } catch (err) {
-                setError("Failed to fetch events");
+                console.error('Error in ManageEventsPage:', err);
+                const errorMessage = err instanceof Error ? err.message : "Failed to fetch events";
+                setError(`Failed to fetch events: ${errorMessage}`);
             } finally {
                 setLoading(false);
             }
@@ -93,7 +97,16 @@ export default function ManageEventsPage() {
     return (
         <main className="w-[100%] flex flex-col items-center space-y-4 p-8">
             <h1 className="text-black text-2xl font-medium">Manage Events</h1>
-            {error && <Alert severity="error">{error}</Alert>}
+            {error && (
+                <Alert severity="error">
+                    <div>{error}</div>
+                    <div className="text-xs mt-2">
+                        API URL: {API_BASE_URL}
+                        <br />
+                        If you see CORS errors in the browser console, your backend needs to allow requests from this domain.
+                    </div>
+                </Alert>
+            )}
             <Link href="/events/create">
                 <Button variant="contained" className="bg-green-600 hover:bg-green-700 mb-4">
                     Create New Event
