@@ -20,10 +20,23 @@ interface EventItem {
 
   interface ReservationItem {
     _id?: string;
-    event: string;
+    event: string | {
+      _id: string;
+      name: string;
+      description?: string;
+      eventDate: string;
+      venue?: string;
+      availableTicket?: number;
+    };
     eventName?: string;
     ticketAmount: number;
-    user?: string;
+    user?: string | {
+      _id: string;
+      name: string;
+      email: string;
+      tel: string;
+      role: string;
+    };
     status?: string;
   }
 

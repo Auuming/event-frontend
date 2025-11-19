@@ -17,6 +17,7 @@ export default async function EventCatalog({eventsJson, session}:{eventsJson:Pro
                         const posterPicture = eventItem.posterPicture 
                             ? (typeof eventItem.posterPicture === 'string' ? eventItem.posterPicture : '/img/cover.jpg')
                             : '/img/cover.jpg';
+                        
                         return (
                             <div key={eventId || `event-${eventItem._id}`} className="w-1/5 mb-4">
                                 <Link href={`/events/${eventId}`}>

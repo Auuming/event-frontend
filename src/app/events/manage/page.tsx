@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Button, Alert } from "@mui/material";
+import { Button, Alert, TextField, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import getEvents from "@/libs/getEvents";
 import deleteEvent from "@/libs/deleteEvent";
 
@@ -15,6 +15,8 @@ export default function ManageEventsPage() {
     const [events, setEvents] = useState<EventItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [statusFilter, setStatusFilter] = useState<string>('all');
+    const [searchQuery, setSearchQuery] = useState<string>('');
 
     useEffect(() => {
         const fetchEvents = async () => {
@@ -58,6 +60,34 @@ export default function ManageEventsPage() {
         );
     }
 
+    // Calculate status helper function
+    const getEventStatus = (dateString: string): string => {
+        const eventDate = new Date(dateString);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const eventDateOnly = new Date(eventDate);
+        eventDateOnly.setHours(0, 0, 0, 0);
+        return eventDateOnly < today ? 'end' : 'upcoming';
+    };
+
+    // Filter events based on status and search
+    const filteredEvents = events.filter((event) => {
+        // Status filter
+        const eventStatus = getEventStatus(event.eventDate);
+        if (statusFilter !== 'all' && eventStatus !== statusFilter) {
+            return false;
+        }
+
+        // Search filter
+        if (searchQuery.trim() !== '') {
+            if (!event.name.toLowerCase().includes(searchQuery.toLowerCase())) {
+                return false;
+            }
+        }
+
+        return true;
+    });
+
     if (loading) return <div className="text-black">Loading...</div>;
 
     return (
@@ -69,11 +99,42 @@ export default function ManageEventsPage() {
                     Create New Event
                 </Button>
             </Link>
+            
+            {/* Filters and Search */}
+            <div className="w-full max-w-4xl mb-4 flex flex-col gap-4 md:flex-row">
+                {/* Status Filter */}
+                <FormControl variant="standard" className="min-w-[200px]">
+                    <InputLabel className="text-black">Filter by Status</InputLabel>
+                    <Select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        label="Filter by Status"
+                        className="text-black"
+                    >
+                        <MenuItem value="all">All</MenuItem>
+                        <MenuItem value="upcoming">Upcoming</MenuItem>
+                        <MenuItem value="end">End</MenuItem>
+                    </Select>
+                </FormControl>
+
+                {/* Search Bar */}
+                <TextField
+                    variant="standard"
+                    placeholder="Search by event name..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="flex-1"
+                    InputProps={{
+                        className: "text-black"
+                    }}
+                />
+            </div>
+
             <div className="w-full max-w-4xl">
-                {events.length === 0 ? (
+                {filteredEvents.length === 0 ? (
                     <div className="text-black text-center w-full flex justify-center items-center py-8">No events found</div>
                 ) : (
-                    events.map((event) => {
+                    filteredEvents.map((event) => {
                         const eventId = event.id || event._id;
                         // Validate posterPicture - must be a valid string and a valid URL/path
                         const isValidImageSrc = (src: any): boolean => {
@@ -88,15 +149,6 @@ export default function ManageEventsPage() {
                             ? (typeof event.posterPicture === 'string' && isValidImageSrc(event.posterPicture) ? event.posterPicture : '/img/cover.jpg')
                             : '/img/cover.jpg';
                         
-                        // Calculate status based on eventDate
-                        const getEventStatus = (dateString: string): string => {
-                            const eventDate = new Date(dateString);
-                            const today = new Date();
-                            today.setHours(0, 0, 0, 0);
-                            const eventDateOnly = new Date(eventDate);
-                            eventDateOnly.setHours(0, 0, 0, 0);
-                            return eventDateOnly < today ? 'end' : 'upcoming';
-                        };
                         const eventStatus = getEventStatus(event.eventDate);
                         
                         return (

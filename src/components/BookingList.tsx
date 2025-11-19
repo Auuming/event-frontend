@@ -7,12 +7,16 @@ import { useEffect, useState } from "react"
 import getReservations from "@/libs/getReservations"
 import deleteReservation from "@/libs/deleteReservation"
 import Link from "next/link"
+import { TextField, Select, MenuItem, FormControl, InputLabel } from "@mui/material"
 
 export default function ReservationList() {
     const { data: session } = useSession()
     const dispatch = useDispatch<AppDispatch>()
     const [reservations, setReservations] = useState<ReservationItem[]>([])
     const [loading, setLoading] = useState(true)
+    const [statusFilter, setStatusFilter] = useState<string>('all')
+    const [searchQuery, setSearchQuery] = useState<string>('')
+    const [searchType, setSearchType] = useState<string>('event')
     
     useEffect(() => {
         const fetchReservations = async () => {
@@ -45,6 +49,50 @@ export default function ReservationList() {
         }
     }
     
+    // Calculate status helper function
+    const getEventStatus = (date: Date | null): string => {
+        if (!date) return '';
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const eventDateOnly = new Date(date);
+        eventDateOnly.setHours(0, 0, 0, 0);
+        return eventDateOnly < today ? 'end' : 'upcoming';
+    };
+
+    // Filter reservations based on status and search
+    const filteredReservations = reservations.filter((reservation) => {
+        // Status filter
+        const eventDateObj = typeof reservation.event === 'object' && reservation.event?.eventDate
+            ? new Date(reservation.event.eventDate)
+            : null;
+        const eventStatus = getEventStatus(eventDateObj);
+        if (statusFilter !== 'all' && eventStatus !== statusFilter) {
+            return false;
+        }
+
+        // Search filter (only for admin)
+        if (session?.user?.role === 'admin' && searchQuery.trim() !== '') {
+            const eventName = reservation.eventName || 
+                (typeof reservation.event === 'string' ? reservation.event : 
+                (reservation.event as any)?.name || '');
+            const userName = typeof reservation.user === 'object' && reservation.user?.name
+                ? reservation.user.name
+                : '';
+            
+            if (searchType === 'event') {
+                if (!eventName.toLowerCase().includes(searchQuery.toLowerCase())) {
+                    return false;
+                }
+            } else if (searchType === 'user') {
+                if (!userName.toLowerCase().includes(searchQuery.toLowerCase())) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    });
+
     if (loading) return <div className="text-black">Loading...</div>
     if (!session) return <div className="text-black">Please sign in to view your reservations</div>
     
@@ -53,22 +101,88 @@ export default function ReservationList() {
             <h1 className="text-2xl font-bold mb-4 text-black">
                 {session.user?.role === 'admin' ? 'All Reservations' : 'My Reservations'}
             </h1>
-            {reservations.length === 0 ? (
+            
+            {/* Filters and Search */}
+            <div className="mb-4 flex flex-col gap-4 md:flex-row">
+                {/* Status Filter */}
+                <FormControl variant="standard" className="min-w-[200px]">
+                    <InputLabel className="text-black">Filter by Status</InputLabel>
+                    <Select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        label="Filter by Status"
+                        className="text-black"
+                    >
+                        <MenuItem value="all">All</MenuItem>
+                        <MenuItem value="upcoming">Upcoming</MenuItem>
+                        <MenuItem value="end">End</MenuItem>
+                    </Select>
+                </FormControl>
+
+                {/* Search (only for admin) */}
+                {session.user?.role === 'admin' && (
+                    <div className="flex gap-2 flex-1">
+                        <FormControl variant="standard" className="min-w-[120px]">
+                            <InputLabel className="text-black">Search By</InputLabel>
+                            <Select
+                                value={searchType}
+                                onChange={(e) => setSearchType(e.target.value)}
+                                label="Search By"
+                                className="text-black"
+                            >
+                                <MenuItem value="event">Event Name</MenuItem>
+                                <MenuItem value="user">User Name</MenuItem>
+                            </Select>
+                        </FormControl>
+                        <TextField
+                            variant="standard"
+                            placeholder={`Search by ${searchType === 'event' ? 'event name' : 'user name'}...`}
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="flex-1"
+                            InputProps={{
+                                className: "text-black"
+                            }}
+                        />
+                    </div>
+                )}
+            </div>
+
+            {filteredReservations.length === 0 ? (
                 <div className="text-black text-center w-full flex justify-center items-center py-8">No reservations found</div>
             ) : (
-                reservations.map((reservation) => {
+                filteredReservations.map((reservation) => {
                     // Handle event as either string or object
                     const eventName = reservation.eventName || 
                         (typeof reservation.event === 'string' ? reservation.event : 
                         (reservation.event as any)?.name || 'Unknown Event');
                     
+                    // Handle eventDate from event object
+                    const eventDateObj = typeof reservation.event === 'object' && reservation.event?.eventDate
+                        ? new Date(reservation.event.eventDate)
+                        : null;
+                    const eventDate = eventDateObj ? eventDateObj.toLocaleDateString() : null;
+                    
+                    const eventStatus = getEventStatus(eventDateObj);
+                    
+                    // Handle user as either string or object (for admin view)
+                    const userName = typeof reservation.user === 'object' && reservation.user?.name
+                        ? reservation.user.name
+                        : null;
+                    
                     return (
                     <div className="bg-slate-200 rounded px-5 py-2 my-2 text-black" key={reservation._id}>
                         <div className="text-xl">Event: {eventName}</div>
-                        <div className="text-sm">Tickets: {reservation.ticketAmount}</div>
-                        {reservation.status && (
-                            <div className="text-sm">Status: {reservation.status}</div>
+                        {eventDate && (
+                            <div className="text-sm">Event Date: {eventDate}</div>
                         )}
+                        {eventStatus && (
+                            <div className="text-sm">Status: <span className="font-semibold capitalize">{eventStatus}</span></div>
+                        )}
+                        {session.user?.role === 'admin' && userName && (
+                            <div className="text-sm text-black mb-1">User: <span className="font-semibold">{userName}</span></div>
+                        )}
+                        <div className="text-sm">Tickets: {reservation.ticketAmount}</div>
                         <div className="mt-2 flex gap-2">
                             <Link 
                                 href={`/reservations/${reservation._id}/edit`}
