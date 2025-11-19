@@ -43,18 +43,10 @@ export default function CreateReservationPage() {
             setError("Please select an event");
             return;
         }
+        
+        // Frontend check: ticket count must be between 1 and 5
         if (ticketCount < 1 || ticketCount > 5) {
             setError("Ticket count must be between 1 and 5");
-            return;
-        }
-
-        // Check total tickets for this event by this member
-        const totalTicketsForEvent = existingReservations
-            .filter(r => r.event === selectedEvent)
-            .reduce((sum, r) => sum + r.ticketAmount, 0);
-        
-        if (totalTicketsForEvent + ticketCount > 5) {
-            setError(`You can only reserve a maximum of 5 tickets per event. You already have ${totalTicketsForEvent} tickets reserved for this event.`);
             return;
         }
 
@@ -70,7 +62,15 @@ export default function CreateReservationPage() {
             await createReservation(session.user.token as string, selectedEvent, ticketCount);
             router.push("/mybooking");
         } catch (err: any) {
-            setError(err.message || "Failed to create reservation");
+            // Parse backend error messages and show user-friendly messages
+            const errorMessage = err.message || "Failed to create reservation";
+            if (errorMessage.includes("Cannot request more than 5 tickets per event")) {
+                setError("You cannot reserve more than 5 tickets per event in total");
+            } else if (errorMessage.includes("Not enough tickets available")) {
+                setError("Not enough tickets available for this event");
+            } else {
+                setError(errorMessage);
+            }
         } finally {
             setLoading(false);
         }

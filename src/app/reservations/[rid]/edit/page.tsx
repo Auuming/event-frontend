@@ -15,7 +15,6 @@ export default function EditReservationPage() {
     
     const [ticketCount, setTicketCount] = useState<number>(1);
     const [currentReservation, setCurrentReservation] = useState<ReservationItem | null>(null);
-    const [allReservations, setAllReservations] = useState<ReservationItem[]>([]);
     const [error, setError] = useState<string>("");
     const [loading, setLoading] = useState(false);
     const [loadingData, setLoadingData] = useState(true);
@@ -27,7 +26,6 @@ export default function EditReservationPage() {
             try {
                 const data = await getReservations(session.user.token as string);
                 const reservations = data.data || [];
-                setAllReservations(reservations);
                 const reservation = reservations.find((r: ReservationItem) => r._id === rid);
                 if (reservation) {
                     setCurrentReservation(reservation);
@@ -45,22 +43,21 @@ export default function EditReservationPage() {
     }, [session, rid]);
 
     const handleUpdate = async () => {
-        if (ticketCount < 1 || ticketCount > 5) {
+        const isMember = session?.user?.role === 'member';
+        
+        // Frontend check: For members, ticket count must be between 1 and 5
+        // For admins: ticket count must be at least 1 (no upper limit)
+        if (ticketCount < 1) {
+            setError("Ticket count must be at least 1");
+            return;
+        }
+        
+        if (isMember && ticketCount > 5) {
             setError("Ticket count must be between 1 and 5");
             return;
         }
 
         if (!currentReservation) return;
-
-        // Check total tickets for this event by this member (excluding current reservation)
-        const totalTicketsForEvent = allReservations
-            .filter(r => r.event === currentReservation.event && r._id !== rid)
-            .reduce((sum, r) => sum + r.ticketAmount, 0);
-        
-        if (totalTicketsForEvent + ticketCount > 5) {
-            setError(`You can only reserve a maximum of 5 tickets per event. You already have ${totalTicketsForEvent} tickets reserved for this event (excluding this reservation).`);
-            return;
-        }
 
         if (!session?.user?.token) {
             setError("Please sign in to update a reservation");
@@ -74,7 +71,15 @@ export default function EditReservationPage() {
             await updateReservation(session.user.token as string, rid, ticketCount);
             router.push("/mybooking");
         } catch (err: any) {
-            setError(err.message || "Failed to update reservation");
+            // Parse backend error messages and show user-friendly messages
+            const errorMessage = err.message || "Failed to update reservation";
+            if (errorMessage.includes("Cannot request more than 5 tickets per event")) {
+                setError("You cannot reserve more than 5 tickets per event in total");
+            } else if (errorMessage.includes("Not enough tickets available")) {
+                setError("Not enough tickets available for this event");
+            } else {
+                setError(errorMessage);
+            }
         } finally {
             setLoading(false);
         }
@@ -100,11 +105,14 @@ export default function EditReservationPage() {
                 
                 <TextField 
                     variant="standard" 
-                    label="Ticket Count (Max 5)"
+                    label={session?.user?.role === 'admin' ? "Ticket Count" : "Ticket Count (Max 5)"}
                     type="number"
                     value={ticketCount}
                     onChange={(e) => setTicketCount(parseInt(e.target.value) || 1)}
-                    inputProps={{ min: 1, max: 5 }}
+                    inputProps={{ 
+                        min: 1, 
+                        ...(session?.user?.role === 'member' ? { max: 5 } : {})
+                    }}
                     fullWidth
                 />
 
