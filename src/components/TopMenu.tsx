@@ -1,8 +1,9 @@
 import styles from './topmenu.module.css';
 import Image from 'next/image';
+import Link from 'next/link';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/authOptions';
-import { Link } from '@mui/material';
+import { Link as MuiLink } from '@mui/material';
 import TopMenuItem from './TopMenuItem';
 
 export default async function TopMenu() {
@@ -11,8 +12,10 @@ export default async function TopMenu() {
 
   return (
     <div className={styles.menucontainer}>
-        <Image src={'/img/logo.png'} className={styles.logoImg} alt='logo'
-        width={0} height={0} sizes='100vh'/>
+        <Link href={session ? '/user' : '/api/auth/signin'}>
+          <Image src={'/img/user.png'} className={styles.logoImg} alt='user profile'
+          width={0} height={0} sizes='100vh' style={{ cursor: 'pointer' }}/>
+        </Link>
         <div className='flex flex-row'>
           <TopMenuItem title='Events' pageRef='/events'/>
           {session?.user?.role === 'admin' && (
@@ -31,19 +34,19 @@ export default async function TopMenu() {
           {
             session? (
               <>
-                <Link href="/api/auth/signout">
+                <MuiLink href="/api/auth/signout">
                   <div className='flex items-center h-full px-2 text-cyan-600 text-sm'>
                     Sign-Out of {session.user?.name}
                   </div>
-                </Link>
+                </MuiLink>
               </>
             ) : (
               <>
-                <Link href="/api/auth/signin">
+                <MuiLink href="/api/auth/signin">
                   <div className='flex items-center h-full px-2 text-cyan-600 text-sm'>
                     Sign-In
                   </div>
-                </Link>
+                </MuiLink>
                 <TopMenuItem title='Register' pageRef='/register'/>
               </>
             )

@@ -14,8 +14,8 @@ export default async function Events() {
       <Suspense fallback={ 
         <div className="w-full p-8">
           <div className="text-center mb-4">
-            <p className="text-lg font-medium text-gray-700 mb-2">Loading events...</p>
-            <p className="text-sm text-gray-500">Please wait while we fetch events</p>
+            <p className="text-lg font-medium text-gray-700 mb-2 text-black">Loading events...</p>
+            <p className="text-sm text-gray-500 text-black">Please wait while we fetch events</p>
           </div>
           <LinearProgress />
         </div>

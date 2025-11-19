@@ -45,16 +45,16 @@ export default function ReservationList() {
         }
     }
     
-    if (loading) return <div>Loading...</div>
-    if (!session) return <div>Please sign in to view your reservations</div>
+    if (loading) return <div className="text-black">Loading...</div>
+    if (!session) return <div className="text-black">Please sign in to view your reservations</div>
     
     return (
         <div className="p-4">
-            <h1 className="text-2xl font-bold mb-4">
+            <h1 className="text-2xl font-bold mb-4 text-black">
                 {session.user?.role === 'admin' ? 'All Reservations' : 'My Reservations'}
             </h1>
             {reservations.length === 0 ? (
-                <div>No reservations found</div>
+                <div className="text-black text-center w-full flex justify-center items-center py-8">No reservations found</div>
             ) : (
                 reservations.map((reservation) => {
                     // Handle event as either string or object

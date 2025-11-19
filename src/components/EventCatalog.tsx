@@ -6,9 +6,11 @@ export default async function EventCatalog({eventsJson, session}:{eventsJson:Pro
     
     return (
         <div>
-            <div>Explore {eventJsonReady.count} events in our catalog</div>
+            <div className="text-black text-center">Explore {eventJsonReady.count} events in our catalog</div>
             <div style={{margin:"20px", display:"flex", flexDirection:"row", flexWrap:"wrap", justifyContent:"space-around", alignContent:"space-around"}}>
-                {
+                {eventJsonReady.data.length === 0 ? (
+                    <div className="text-black text-center w-full flex justify-center items-center py-8">No events found</div>
+                ) : (
                     eventJsonReady.data.map( (eventItem:EventItem) => {
                         const eventId = eventItem.id || eventItem._id;
                         // Ensure posterPicture is a valid string, use fallback if not
@@ -29,7 +31,7 @@ export default async function EventCatalog({eventsJson, session}:{eventsJson:Pro
                             </div>
                         );
                     })
-                }
+                )}
             </div>
         </div>
     )

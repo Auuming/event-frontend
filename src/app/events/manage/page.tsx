@@ -58,7 +58,7 @@ export default function ManageEventsPage() {
         );
     }
 
-    if (loading) return <div>Loading...</div>;
+    if (loading) return <div className="text-black">Loading...</div>;
 
     return (
         <main className="w-[100%] flex flex-col items-center space-y-4 p-8">
@@ -71,7 +71,7 @@ export default function ManageEventsPage() {
             </Link>
             <div className="w-full max-w-4xl">
                 {events.length === 0 ? (
-                    <div>No events found</div>
+                    <div className="text-black text-center w-full flex justify-center items-center py-8">No events found</div>
                 ) : (
                     events.map((event) => {
                         const eventId = event.id || event._id;
