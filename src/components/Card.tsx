@@ -31,7 +31,7 @@ export default function Card({eventName, imgSrc, description, eventDate, availab
   
   return (
     <InteractiveCard>
-        <div className="w-full h-[70%] relative rounded-t-lg">
+        <div className="w-full h-[250px] relative rounded-t-lg flex-shrink-0">
                 <Image 
                 src={displayImgSrc}
                     alt={`${eventName} poster`}
@@ -41,16 +41,19 @@ export default function Card({eventName, imgSrc, description, eventDate, availab
                 unoptimized={displayImgSrc.startsWith('http://localhost') || displayImgSrc.includes('example.com')}
                 />
         </div>
-        <div className="w-full h-[30%] text-black p-3 flex flex-col justify-between overflow-hidden" onClick={(e) => e.stopPropagation()}>
-          <div className="font-bold text-lg mb-1 truncate" title={eventName}>{eventName}</div>
+        <div className="w-full text-black p-3 flex flex-col gap-1 flex-grow" onClick={(e) => e.stopPropagation()}>
+          <div className="font-bold text-lg break-words" title={eventName}>{eventName}</div>
+          {/* Description: show on all screens, wrap properly */}
           {description && (
-            <div className="text-sm text-gray-600 mb-1 truncate" title={description}>{description}</div>
+            <div className="text-sm text-gray-600 break-words" title={description}>{description}</div>
           )}
-          {eventDate && (
-            <div className="text-xs text-gray-500 mb-1">Date: {new Date(eventDate).toLocaleDateString()}</div>
-          )}
+          {/* Available Tickets: show on all screens */}
           {availableTicket !== undefined && (
-            <div className="text-xs text-gray-500 mb-1">Available: {availableTicket} tickets</div>
+            <div className="text-xs text-gray-500">Available: {availableTicket} tickets</div>
+          )}
+          {/* Event Date: show on all screens */}
+          {eventDate && (
+            <div className="text-xs text-gray-500">Date: {new Date(eventDate).toLocaleDateString()}</div>
           )}
           {
             onCompare? <Rating

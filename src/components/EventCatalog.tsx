@@ -7,9 +7,9 @@ export default async function EventCatalog({eventsJson, session}:{eventsJson:Pro
     return (
         <div>
             <div className="text-black text-center">Explore {eventJsonReady.count} events in our catalog</div>
-            <div style={{margin:"20px", display:"flex", flexDirection:"row", flexWrap:"wrap", justifyContent:"space-around", alignContent:"space-around"}}>
+            <div className="m-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {eventJsonReady.data.length === 0 ? (
-                    <div className="text-black text-center w-full flex justify-center items-center py-8">No events found</div>
+                    <div className="text-black text-center w-full flex justify-center items-center py-8 col-span-full">No events found</div>
                 ) : (
                     eventJsonReady.data.map( (eventItem:EventItem) => {
                         const eventId = eventItem.id || eventItem._id;
@@ -19,7 +19,7 @@ export default async function EventCatalog({eventsJson, session}:{eventsJson:Pro
                             : '/img/cover.jpg';
                         
                         return (
-                            <div key={eventId || `event-${eventItem._id}`} className="w-1/5 mb-4">
+                            <div key={eventId || `event-${eventItem._id}`} className="w-full">
                                 <Link href={`/events/${eventId}`}>
                                     <Card 
                                         eventName={eventItem.name} 

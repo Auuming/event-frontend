@@ -35,31 +35,31 @@ async function EventDetailContent({eid, session}: {eid: string, session: any}) {
     const eventHasPassed = isEventPassed(eventDetail.data.eventDate);
 
     return (
-            <div className="flex flex-row my-5">
+            <div className="flex flex-col md:flex-row my-5 gap-4">
             <Image src = { posterPicture }
                     alt = 'Event Image'
                     width={0} height={0} sizes="100vw"
-                    className="rounded-lg w-[30%]"
+                    className="rounded-lg w-full md:w-[30%] h-auto object-contain"
                 />
-                <div className="text-md mx-5 text-left">
-                    <div className="text-xl font-bold mb-2">Name: { eventDetail.data.name }</div>
-                    <div className="text-md mx-5 mb-2">Description: { eventDetail.data.description }</div>
-                    <div className="text-md mx-5 mb-2">Event Date: { new Date(eventDetail.data.eventDate).toLocaleDateString() }</div>
-                <div className="text-md mx-5 mb-2">Venue: { eventDetail.data.venue }</div>
-                <div className="text-md mx-5 mb-2">Organizer: { eventDetail.data.organizer }</div>
-                <div className="text-md mx-5 mb-2">Available Tickets: { eventDetail.data.availableTicket }</div>
+                <div className="text-md md:mx-5 text-left flex-1">
+                    <div className="text-xl font-bold mb-2 break-words">Name: { eventDetail.data.name }</div>
+                    <div className="text-md mb-2 break-words">Description: { eventDetail.data.description }</div>
+                    <div className="text-md mb-2">Event Date: { new Date(eventDetail.data.eventDate).toLocaleDateString() }</div>
+                <div className="text-md mb-2 break-words">Venue: { eventDetail.data.venue }</div>
+                <div className="text-md mb-2 break-words">Organizer: { eventDetail.data.organizer }</div>
+                <div className="text-md mb-2">Available Tickets: { eventDetail.data.availableTicket }</div>
                 {!eventHasPassed && (
-                    <div className="mt-4 flex gap-2">
-                        {session?.user?.role === 'member' ? (
-                            <Link href={`/reservations/create?eventId=${eid}`} className="inline-block bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded cursor-pointer no-underline">
-                                Reserve
+                <div className="mt-4 flex gap-2 flex-wrap">
+                    {session?.user?.role === 'member' ? (
+                        <Link href={`/reservations/create?eventId=${eid}`} className="inline-block bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded cursor-pointer no-underline">
+                            Reserve
                             </Link>
-                        ) : !session ? (
-                            <Link href="/api/auth/signin" className="inline-block bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded cursor-pointer no-underline">
-                                Sign In to Reserve
+                    ) : !session ? (
+                        <Link href="/api/auth/signin" className="inline-block bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded cursor-pointer no-underline">
+                            Sign In to Reserve
                             </Link>
-                        ) : null}
-                    </div>
+                    ) : null}
+                </div>
                 )}
             </div>
         </div>

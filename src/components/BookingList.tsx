@@ -51,7 +51,7 @@ export default function ReservationList() {
             alert('Failed to delete reservation')
         }
     }
-
+    
     const handleExportToPDF = async (reservation: ReservationItem) => {
         // Extract reservation data
         const eventName = reservation.eventName || 

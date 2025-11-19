@@ -11,12 +11,12 @@ export default async function TopMenu() {
   const session = await getServerSession(authOptions);
 
   return (
-    <div className={styles.menucontainer}>
+    <div className={styles.menucontainer} data-header>
         <Link href={session ? '/user' : '/api/auth/signin'}>
           <Image src={'/img/user.png'} className={styles.logoImg} alt='user profile'
           width={0} height={0} sizes='100vh' style={{ cursor: 'pointer' }}/>
         </Link>
-        <div className='flex flex-row'>
+        <div className={styles.navGroup}>
           <TopMenuItem title='Events' pageRef='/events'/>
           {session?.user?.role === 'admin' && (
             <TopMenuItem title='Manage Events' pageRef='/events/manage'/>
@@ -30,12 +30,12 @@ export default async function TopMenu() {
           )}
           <TopMenuItem title='Home' pageRef='/'/>
         </div>
-        <div className='flex flex-row absolute left-0 h-full'>
+        <div className={styles.authGroup}>
           {
             session? (
               <>
                 <MuiLink href="/api/auth/signout">
-                  <div className='flex items-center h-full px-2 text-cyan-600 text-sm'>
+                  <div className='flex items-center px-2 text-cyan-600 text-sm whitespace-nowrap'>
                     Sign-Out of {session.user?.name}
                   </div>
                 </MuiLink>
@@ -43,7 +43,7 @@ export default async function TopMenu() {
             ) : (
               <>
                 <MuiLink href="/api/auth/signin">
-                  <div className='flex items-center h-full px-2 text-cyan-600 text-sm'>
+                  <div className='flex items-center px-2 text-cyan-600 text-sm whitespace-nowrap'>
                     Sign-In
                   </div>
                 </MuiLink>

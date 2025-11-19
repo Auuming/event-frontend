@@ -18,11 +18,15 @@ body {
   overflow-x: hidden;
 }
 
+:root {
+  --header-height: 66px; /* Default height: 50px min-height + 8px top padding + 8px bottom padding */
+}
+
 body {
   color: var(--foreground);
   background: var(--background);
   background-color: white;
-  margin-top: 50px;
+  margin-top: var(--header-height);
   font-family: Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
