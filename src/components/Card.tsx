@@ -16,23 +16,30 @@ export default function Card({eventName, imgSrc, description, eventDate, availab
   const [rating, setRating] = useState<number | null>(0);
   const [imgError, setImgError] = useState(false);
   
+  // Validate imgSrc - must be a string and a valid URL/path
+  const isValidImageSrc = (src: string): boolean => {
+    if (!src || typeof src !== 'string') return false;
+    const trimmed = src.trim();
+    if (trimmed === '') return false;
+    // Must start with / for relative paths, or http:// or https:// for absolute URLs
+    return trimmed.startsWith('/') || trimmed.startsWith('http://') || trimmed.startsWith('https://');
+  };
+  
+  // Use fallback image if imgSrc is invalid
+  const validImgSrc = isValidImageSrc(imgSrc) ? imgSrc : '/img/cover.jpg';
+  const displayImgSrc = imgError ? '/img/cover.jpg' : validImgSrc;
+  
   return (
     <InteractiveCard>
         <div className="w-full h-[70%] relative rounded-t-lg">
-            {imgError || !imgSrc ? (
-                <div className="w-full h-full bg-gray-200 flex items-center justify-center rounded-t-lg">
-                    <span className="text-gray-400 text-sm">No Image</span>
-                </div>
-            ) : (
                 <Image 
-                    src={imgSrc}
+                src={displayImgSrc}
                     alt={`${eventName} poster`}
                     fill={true}
                     className="object-contain rounded-t-lg"
                     onError={() => setImgError(true)}
-                    unoptimized={imgSrc.startsWith('http://localhost') || imgSrc.includes('example.com')}
+                unoptimized={displayImgSrc.startsWith('http://localhost') || displayImgSrc.includes('example.com')}
                 />
-            )}
         </div>
         <div className="w-full h-[30%] text-black p-3 flex flex-col justify-between overflow-hidden" onClick={(e) => e.stopPropagation()}>
           <div className="font-bold text-lg mb-1 truncate" title={eventName}>{eventName}</div>

@@ -11,12 +11,16 @@ export default async function EventCatalog({eventsJson, session}:{eventsJson:Pro
                 {
                     eventJsonReady.data.map( (eventItem:EventItem) => {
                         const eventId = eventItem.id || eventItem._id;
+                        // Ensure posterPicture is a valid string, use fallback if not
+                        const posterPicture = eventItem.posterPicture 
+                            ? (typeof eventItem.posterPicture === 'string' ? eventItem.posterPicture : '/img/cover.jpg')
+                            : '/img/cover.jpg';
                         return (
                             <div key={eventId || `event-${eventItem._id}`} className="w-1/5 mb-4">
                                 <Link href={`/events/${eventId}`}>
                                     <Card 
                                         eventName={eventItem.name} 
-                                        imgSrc={eventItem.posterPicture}
+                                        imgSrc={posterPicture}
                                         description={eventItem.description}
                                         eventDate={eventItem.eventDate}
                                         availableTicket={eventItem.availableTicket}

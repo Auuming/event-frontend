@@ -9,9 +9,23 @@ import { LinearProgress } from "@mui/material";
 async function EventDetailContent({eid, session}: {eid: string, session: any}) {
     const eventDetail = await getEvent(eid);
 
+    // Validate posterPicture - must be a valid string and a valid URL/path
+    const isValidImageSrc = (src: any): boolean => {
+        if (!src || typeof src !== 'string') return false;
+        const trimmed = src.trim();
+        if (trimmed === '') return false;
+        // Must start with / for relative paths, or http:// or https:// for absolute URLs
+        return trimmed.startsWith('/') || trimmed.startsWith('http://') || trimmed.startsWith('https://');
+    };
+    
+    // Ensure posterPicture is a valid string, use fallback if not
+    const posterPicture = eventDetail.data.posterPicture 
+        ? (typeof eventDetail.data.posterPicture === 'string' && isValidImageSrc(eventDetail.data.posterPicture) ? eventDetail.data.posterPicture : '/img/cover.jpg')
+        : '/img/cover.jpg';
+
     return (
             <div className="flex flex-row my-5">
-            <Image src = { eventDetail.data.posterPicture }
+            <Image src = { posterPicture }
                     alt = 'Event Image'
                     width={0} height={0} sizes="100vw"
                     className="rounded-lg w-[30%]"
